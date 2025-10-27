@@ -28,16 +28,13 @@ jobs:
       - name: Build frontend
         run: npm run build
         env:
-          CI: true 
-
-      - name: Build backend
-        run: npm run build-backend
-        continue-on-error: true # Permite continuar si el script no existe
+          CI: true
 
       - name: Run specific tests with coverage
-        run: npm test -- --coverage pruebas/gamificacion/RecompensaTab.test.js pruebas/gamificacion/PacientesTab.test.js pruebas/gamificacion/ServiciosTab.test.js
+        run: |
+          npm test -- --coverage --testPathPattern="src/pages/administrador/pages/gamificacion/(RecompensaTab|PacientesTab|ServiciosTab)\.test\.js"
         env:
-          CI: true # Configura Jest para entornos CI
+          CI: true
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
