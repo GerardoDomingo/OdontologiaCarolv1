@@ -3,18 +3,17 @@ import axios from 'axios';
 import ServiciosTab from './ServiciosTab.jsx';
 
 // Mock axios
-jest.mock('axios'); 
- 
+jest.mock('axios');
 
 // Mock de la prop showNotif
 const mockShowNotif = jest.fn();
- 
+
 const mockColors = {
   primary: '#3f51b5',
   primaryDark: '#303f9f',
   success: '#4caf50',
   warning: '#ff9800',
-  error: '#d32f2f', // Incluido para evitar TypeError
+  error: '#d32f2f',
   text: '#212121',
   secondaryText: '#757575',
   gradient: 'linear-gradient(135deg, #3f51b5 0%, #2196f3 100%)',
@@ -51,7 +50,10 @@ describe('ServiciosTab - Obtención de Datos del Endpoint', () => {
   });
 
   test('obtiene y muestra los datos de los servicios correctamente', async () => {
-    axios.get.mockResolvedValueOnce({ data: mockServiciosData });
+    // Mock del endpoint con un retraso simulado
+    axios.get.mockImplementationOnce(() =>
+      new Promise((resolve) => setTimeout(() => resolve({ data: mockServiciosData }), 100))
+    );
 
     render(
       <ServiciosTab
@@ -62,13 +64,59 @@ describe('ServiciosTab - Obtención de Datos del Endpoint', () => {
       />
     );
 
+    // Verificar que se llame al endpoint correcto
+    await waitFor(() => {
+      expect(axios.get).toHaveBeenCalledWith(
+        'https://back-end-4803.onrender.com/api/gamificacion/servicios-gamificacion',
+        expect.any(Object)
+      );
+    }, { timeout: 2000 });
+
+    // Verificar que se muestre el nombre del primer servicio
     await waitFor(() => {
       expect(screen.getByText('Limpieza Dental')).toBeInTheDocument();
-    });
+    }, { timeout: 2000 });
+
+    // Verificar que se muestre la descripción del primer servicio
+    await waitFor(() => {
+      expect(screen.getByText('Limpieza profesional de dientes')).toBeInTheDocument();
+    }, { timeout: 2000 });
+
+    // Verificar que se muestre los puntos del primer servicio
+    await waitFor(() => {
+      expect(screen.getByText('50')).toBeInTheDocument();
+    }, { timeout: 2000 });
+
+    // Verificar que se muestre el estado del primer servicio
+    await waitFor(() => {
+      expect(screen.getByText('Activo')).toBeInTheDocument();
+    }, { timeout: 2000 });
+
+    // Verificar que se muestre el nombre del segundo servicio
+    await waitFor(() => {
+      expect(screen.getByText('Blanqueamiento')).toBeInTheDocument();
+    }, { timeout: 2000 });
+
+    // Verificar que se muestre la descripción del segundo servicio
+    await waitFor(() => {
+      expect(screen.getByText('Blanqueamiento dental avanzado')).toBeInTheDocument();
+    }, { timeout: 2000 });
+
+    // Verificar que se muestre los puntos del segundo servicio
+    await waitFor(() => {
+      expect(screen.getByText('100')).toBeInTheDocument();
+    }, { timeout: 2000 });
+
+    // Verificar que se muestre el estado del segundo servicio
+    await waitFor(() => {
+      expect(screen.getByText('Inactivo')).toBeInTheDocument();
+    }, { timeout: 2000 });
   });
 
   test('muestra mensaje de no hay servicios cuando no están configurados', async () => {
-    axios.get.mockResolvedValueOnce({ data: [] });
+    axios.get.mockImplementationOnce(() =>
+      new Promise((resolve) => setTimeout(() => resolve({ data: [] }), 100))
+    );
 
     render(
       <ServiciosTab
@@ -80,8 +128,15 @@ describe('ServiciosTab - Obtención de Datos del Endpoint', () => {
     );
 
     await waitFor(() => {
+      expect(axios.get).toHaveBeenCalledWith(
+        'https://back-end-4803.onrender.com/api/gamificacion/servicios-gamificacion',
+        expect.any(Object)
+      );
+    }, { timeout: 2000 });
+
+    await waitFor(() => {
       expect(screen.getByText('No hay servicios asignados')).toBeInTheDocument();
-    });
+    }, { timeout: 2000 });
   });
 
   test('maneja el error de la API de servicios correctamente', async () => {
@@ -97,8 +152,18 @@ describe('ServiciosTab - Obtención de Datos del Endpoint', () => {
     );
 
     await waitFor(() => {
-      expect(mockShowNotif).toHaveBeenCalledWith('Error al cargar servicios', 'error');
+      expect(axios.get).toHaveBeenCalledWith(
+        'https://back-end-4803.onrender.com/api/gamificacion/servicios-gamificacion',
+        expect.any(Object)
+      );
+    }, { timeout: 2000 });
 
-    });
+    await waitFor(() => {
+      expect(mockShowNotif).toHaveBeenCalledWith('Error al cargar servicios', 'error');
+    }, { timeout: 2000 });
+
+    await waitFor(() => {
+      expect(screen.getByText('No hay servicios asignados')).toBeInTheDocument();
+    }, { timeout: 2000 });
   });
 });
