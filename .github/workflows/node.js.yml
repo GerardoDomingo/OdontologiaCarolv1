@@ -2,7 +2,7 @@ name: Run Jest Tests, Build and Deploy
 
 on:
   push:
-    branches: 
+    branches:  
       - pruebas/gammificacion
   pull_request:
     branches: 
