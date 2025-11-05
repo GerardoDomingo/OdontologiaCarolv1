@@ -228,7 +228,7 @@ const BarraNav = () => {
           <ListItemIcon sx={{ color: isDarkTheme ? '#90caf9' : '#1976d2', minWidth: 40 }}>
             <FaCalendarAlt size={20} />
           </ListItemIcon>
-          <ListItemText primary="Agenda una Cita" primaryTypographyProps={{ sx: { color: isDarkTheme ? '#fff' : '#1a2027', fontFamily: '"Montserrat", sans-serif', fontWeight: 600 } }} />
+          <ListItemText primary="Agendaa una Cita" primaryTypographyProps={{ sx: { color: isDarkTheme ? '#fff' : '#1a2027', fontFamily: '"Montserrat", sans-serif', fontWeight: 600 } }} />
         </ListItem>
         <ListItem button component={Link} to="/login" onClick={toggleDrawer(false)} sx={{ py: 1.5, mt: 1, backgroundColor: isDarkTheme ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)', '&:hover': { backgroundColor: isDarkTheme ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' } }}>
           <ListItemIcon sx={{ color: isDarkTheme ? '#90caf9' : '#1976d2', minWidth: 40 }}>
