@@ -22,7 +22,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci  # Mejor que npm install
 
       - name: Update browserslist
         run: npx update-browserslist-db@latest
@@ -31,8 +31,6 @@ jobs:
         run: npm run build
         env:
           CI: false
-          # Forzar nuevo hash en assets (React, Vite, etc.)
-          GENERATE_SOURCEMAP: false
 
       - name: Run specific tests with coverage
         run: |
@@ -45,7 +43,12 @@ jobs:
         with:
           name: build-artifact
           path: build/
-          retention-days: 1
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
 
   deploy-to-hostinger:
     needs: build-and-test
@@ -57,64 +60,20 @@ jobs:
           name: build-artifact
           path: build/
 
-      - name: Verify build exists
-        run: |
-          echo "Verificando build local..."
-          if [ ! -d "build" ]; then
-            echo "ERROR: Carpeta 'build/' no existe"
-            exit 1
-          fi
-          echo "Archivos en build/:"
-          ls -la build/ | head -20
-
       - name: Install lftp
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y lftp
 
-      - name: Deploy to Hostinger (LIMPIAR + SUBIR TODO)
+      - name: Deploy to Hostinger via FTP (force upload)
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USER: ${{ secrets.FTP_USER }}
           FTP_PASS: ${{ secrets.FTP_PASS }}
         run: |
-          # Validar secrets
-          [ -z "$FTP_HOST" ] && { echo "Falta FTP_HOST"; exit 1; }
-          [ -z "$FTP_USER" ] && { echo "Falta FTP_USER"; exit 1; }
-          [ -z "$FTP_PASS" ] && { echo "Falta FTP_PASS"; exit 1; }
-
-          echo "Conectando a $FTP_HOST..."
-
           lftp -u "$FTP_USER,$FTP_PASS" "$FTP_HOST" <<EOF
-          set ftp:ssl-allow yes
-          set ftp:ssl-force yes
-          set ftp:ssl-protect-data yes
-          set net:timeout 30
-          set net:max-retries 3
+          set ftp:ssl-allow no
           set mirror:use-pget-n 5
-
-          # 1. LISTAR ANTES
-          echo "=== ANTES DEL DEPLOY (public_html/) ==="
-          ls -la public_html/ || echo "Carpeta vacía o no existe"
-
-          # 2. BORRAR TODO EN public_html/ (¡CRUCIAL!)
-          echo "Borrando todo en public_html/..."
-          cd public_html/ || mkdir -p public_html/ && cd public_html/
-          rm -rf *
-          cd ..
-
-          # 3. SUBIR NUEVO BUILD COMPLETO
-          echo "Subiendo nuevo build..."
-          mirror -R \
-            --verbose \
-            --parallel=10 \
-            build/ public_html/
-
-          # 4. LISTAR DESPUÉS
-          echo "=== DESPUÉS DEL DEPLOY ==="
-          ls -la public_html/ | head -20
-
+          mirror -R --delete --verbose build/ public_html/
           bye
           EOF
-
-          echo "DEPLOY FORZADO COMPLETADO"
