@@ -60,7 +60,7 @@ jobs:
         run: |
           echo "Archivos en build/ local:"
           if [ ! -d "build" ]; then
-            echo "ERROR: La carpeta 'build/' no existe"
+            echo "ERROR: build/ no existe"
             exit 1
           fi
           ls -la build/ | head -15
@@ -70,7 +70,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y lftp
 
-      - name: Deploy to Hostinger - Sube al public_html correcto
+      - name: Deploy to Hostinger - Sube directamente a public_html
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USER: ${{ secrets.FTP_USER }}
@@ -89,24 +89,23 @@ jobs:
           set net:timeout 30
           set net:max-retries 3
 
-          # DEBUG: ¿Dónde estoy al conectar?
-          echo "=== DIRECTORIO RAÍZ FTP ==="
+          # DEBUG: ¿Dónde estoy? (debe ser public_html)
+          echo "=== DIRECTORIO FTP (debe ser public_html) ==="
           pwd
-          ls -la | head -10
-
-          # Entrar a la carpeta public_html (raíz del sitio)
-          cd public_html/ || { echo "ERROR: No se pudo acceder a public_html/"; exit 1; }
-
-          # ANTES del deploy
-          echo "=== ANTES del deploy (dentro de public_html/) ==="
           ls -la | head -15
 
-          # BORRAR SOLO archivos del build anterior (proteger Imagenes y manuales)
-          echo "Borrando archivos antiguos del build..."
-          rm -rf static/ *.html *.js *.css *.json *.ico *.txt asset-manifest.json 2>/dev/null || true
+          # NO HACER cd public_html/ → YA ESTÁS AQUÍ
 
-          # SUBIR el nuevo build al directorio actual (./ = public_html/)
-          echo "Subiendo nuevo build desde local 'build/' a public_html/ ..."
+          # ANTES del deploy
+          echo "=== ANTES del deploy ==="
+          ls -la | head -15
+
+          # BORRAR archivos del build anterior (proteger Imagenes)
+          echo "Borrando archivos antiguos del build..."
+          rm -rf static/ assets/ *.html *.js *.css *.json *.ico *.txt asset-manifest.json service-worker.js manifest.json 2>/dev/null || true
+
+          # SUBIR nuevo build al directorio actual (./ = public_html)
+          echo "Subiendo nuevo build a public_html/ ..."
           mirror -R \
             --verbose \
             --parallel=10 \
@@ -119,15 +118,13 @@ jobs:
             --exclude-glob robots.txt \
             --exclude-glob favicon.ico \
             --exclude-glob *.php \
-            --exclude-glob config/ \
-            --exclude-glob uploads/ \
             build/ ./
 
-          # DESPUÉS del deploy
+          # DESPUÉS
           echo "=== DESPUÉS del deploy ==="
           ls -la | head -15
 
           bye
           EOF
 
-          echo "DEPLOY COMPLETADO CON ÉXITO: Tus cambios ya están en https://odontologiacarol.com"
+          echo "DEPLOY COMPLETADO: Cambios visibles en https://odontologiacarol.com"
