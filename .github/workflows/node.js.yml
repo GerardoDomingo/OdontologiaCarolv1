@@ -22,7 +22,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci  # Mejor que npm install
+        run: npm ci  # Más confiable que npm install
 
       - name: Update browserslist
         run: npx update-browserslist-db@latest
@@ -65,7 +65,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y lftp
 
-      - name: Deploy to Hostinger via FTP (force upload)
+      - name: Deploy to Hostinger via FTP (overwrite all files)
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USER: ${{ secrets.FTP_USER }}
@@ -74,6 +74,7 @@ jobs:
           lftp -u "$FTP_USER,$FTP_PASS" "$FTP_HOST" <<EOF
           set ftp:ssl-allow no
           set mirror:use-pget-n 5
-          mirror -R --delete --verbose build/ public_html/
+          # Subir todos los archivos del build y sobrescribir los existentes
+          mirror -R --verbose --ignore-time --overwrite build/ public_html/
           bye
           EOF
