@@ -2,7 +2,7 @@ name: Run Jest Tests, Build and Deploy
 
 on:
   push:
-    branches:  
+    branches: 
       - pruebas/gammificacion
   pull_request:
     branches: 
@@ -43,6 +43,8 @@ jobs:
         with:
           name: build-artifact
           path: build/
+          retention-days: 1
+
 
   deploy-to-hostinger:
     needs: build-and-test
@@ -54,21 +56,78 @@ jobs:
           name: build-artifact
           path: build/
 
+      - name: Verify build exists
+        run: |
+          echo "Archivos en build/ local:"
+          if [ ! -d "build" ]; then
+            echo "ERROR: La carpeta 'build/' no existe"
+            exit 1
+          fi
+          ls -la build/ | head -15
+
       - name: Install lftp
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y lftp
 
-      - name: Deploy to Hostinger via FTP (overwrite all build files)
+      - name: Deploy to Hostinger - Sube al public_html correcto
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USER: ${{ secrets.FTP_USER }}
           FTP_PASS: ${{ secrets.FTP_PASS }}
         run: |
+          # Validar secrets
+          [ -z "$FTP_HOST" ] && { echo "ERROR: Falta FTP_HOST"; exit 1; }
+          [ -z "$FTP_USER" ] && { echo "ERROR: Falta FTP_USER"; exit 1; }
+          [ -z "$FTP_PASS" ] && { echo "ERROR: Falta FTP_PASS"; exit 1; }
+
+          echo "Conectando a Hostinger via FTP: $FTP_HOST"
+
           lftp -u "$FTP_USER,$FTP_PASS" "$FTP_HOST" <<EOF
           set ftp:ssl-allow no
           set mirror:use-pget-n 5
-          # Sobrescribe todos los archivos del build dentro de public_html/
-          mirror -R --verbose --ignore-time --overwrite build/ public_html/
+          set net:timeout 30
+          set net:max-retries 3
+
+          # DEBUG: ¿Dónde estoy al conectar?
+          echo "=== DIRECTORIO RAÍZ FTP ==="
+          pwd
+          ls -la | head -10
+
+          # Entrar a la carpeta public_html (raíz del sitio)
+          cd public_html/ || { echo "ERROR: No se pudo acceder a public_html/"; exit 1; }
+
+          # ANTES del deploy
+          echo "=== ANTES del deploy (dentro de public_html/) ==="
+          ls -la | head -15
+
+          # BORRAR SOLO archivos del build anterior (proteger Imagenes y manuales)
+          echo "Borrando archivos antiguos del build..."
+          rm -rf static/ *.html *.js *.css *.json *.ico *.txt asset-manifest.json 2>/dev/null || true
+
+          # SUBIR el nuevo build al directorio actual (./ = public_html/)
+          echo "Subiendo nuevo build desde local 'build/' a public_html/ ..."
+          mirror -R \
+            --verbose \
+            --parallel=10 \
+            --ignore-time \
+            --overwrite \
+            --exclude-glob Imagenes/ \
+            --exclude-glob imagenes/ \
+            --exclude-glob IMAGENES/ \
+            --exclude-glob .htaccess \
+            --exclude-glob robots.txt \
+            --exclude-glob favicon.ico \
+            --exclude-glob *.php \
+            --exclude-glob config/ \
+            --exclude-glob uploads/ \
+            build/ ./
+
+          # DESPUÉS del deploy
+          echo "=== DESPUÉS del deploy ==="
+          ls -la | head -15
+
           bye
           EOF
+
+          echo "DEPLOY COMPLETADO CON ÉXITO: Tus cambios ya están en https://odontologiacarol.com"
