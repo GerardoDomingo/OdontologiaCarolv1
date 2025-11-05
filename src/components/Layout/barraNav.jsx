@@ -344,7 +344,7 @@ const BarraNav = () => {
               Agendaa una Cita
             </Button>
             <Button variant="outlined" component={Link} to="/login" startIcon={<FaSignInAlt />} sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 600, fontSize: '0.875rem', color: isDarkTheme ? 'white' : '#03427C', borderColor: isDarkTheme ? 'rgba(255,255,255,0.5)' : '#03427C', borderWidth: '1px', borderRadius: '24px', padding: '6px 16px', height: '38px', ml: 1, '&:hover': { backgroundColor: isDarkTheme ? 'rgba(255,255,255,0.08)' : 'rgba(3,66,124,0.05)', borderColor: isDarkTheme ? 'white' : '#0066cc', transform: 'translateY(-2px)' }, transition: 'transform 0.2s ease, background-color 0.3s ease, border-color 0.3s ease', textTransform: 'none' }}>
-              Iniciar sesión
+              Iniciar sesiónn
             </Button>
             <Tooltip title="Inicio" arrow placement="bottom">
               <IconButton component={Link} to="/" sx={{ color: isDarkTheme ? '#82B1FF' : '#0066cc', backgroundColor: isDarkTheme ? 'rgba(130, 177, 255, 0.1)' : 'rgba(0, 102, 204, 0.05)', borderRadius: '50%', padding: '8px', width: '38px', height: '38px', transition: 'all 0.3s ease', '&:hover': { backgroundColor: isDarkTheme ? 'rgba(130, 177, 255, 0.2)' : 'rgba(0, 102, 204, 0.1)', transform: 'translateY(-2px)' } }}>
