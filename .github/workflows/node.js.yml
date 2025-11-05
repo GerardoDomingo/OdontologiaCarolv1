@@ -22,7 +22,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci  # Más confiable que npm install
+        run: npm ci
 
       - name: Update browserslist
         run: npx update-browserslist-db@latest
@@ -44,12 +44,6 @@ jobs:
           name: build-artifact
           path: build/
 
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage/
-
   deploy-to-hostinger:
     needs: build-and-test
     runs-on: ubuntu-latest
@@ -65,7 +59,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y lftp
 
-      - name: Deploy to Hostinger via FTP (overwrite all files)
+      - name: Deploy to Hostinger via FTP (overwrite all build files)
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USER: ${{ secrets.FTP_USER }}
@@ -74,7 +68,7 @@ jobs:
           lftp -u "$FTP_USER,$FTP_PASS" "$FTP_HOST" <<EOF
           set ftp:ssl-allow no
           set mirror:use-pget-n 5
-          # Subir todos los archivos del build y sobrescribir los existentes
+          # Sobrescribe todos los archivos del build dentro de public_html/
           mirror -R --verbose --ignore-time --overwrite build/ public_html/
           bye
           EOF
