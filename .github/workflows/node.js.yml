@@ -22,7 +22,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci  # Mejor que npm install
+        run: npm ci
 
       - name: Update browserslist
         run: npx update-browserslist-db@latest
@@ -43,12 +43,14 @@ jobs:
         with:
           name: build-artifact
           path: build/
+          retention-days: 1
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: coverage/
+          retention-days: 1
 
   deploy-to-hostinger:
     needs: build-and-test
@@ -59,6 +61,11 @@ jobs:
         with:
           name: build-artifact
           path: build/
+
+      - name: List local build files (debug)
+        run: |
+          echo "Contenido de build/ después de descargar:"
+          ls -la build/ || echo "No se encontró la carpeta build/"
 
       - name: Install lftp
         run: |
@@ -71,9 +78,39 @@ jobs:
           FTP_USER: ${{ secrets.FTP_USER }}
           FTP_PASS: ${{ secrets.FTP_PASS }}
         run: |
+          # Validar que las variables existan
+          if [ -z "$FTP_HOST" ] || [ -z "$FTP_USER" ] || [ -z "$FTP_PASS" ]; then
+            echo "Error: Faltan credenciales FTP en secrets"
+            exit 1
+          fi
+
+          echo "Iniciando deploy a $FTP_HOST..."
+
           lftp -u "$FTP_USER,$FTP_PASS" "$FTP_HOST" <<EOF
-          set ftp:ssl-allow no
+          set ftp:ssl-allow yes
+          set ftp:ssl-force yes
+          set ftp:ssl-protect-data yes
           set mirror:use-pget-n 5
-          mirror -R --only-newer --verbose build/ public_html/
+          set net:timeout 30
+          set net:max-retries 3
+
+          # Debug: listar contenido actual en el servidor
+          echo "=== Contenido actual en public_html/ ==="
+          ls -la public_html/ || echo "No se pudo listar (puede no existir)"
+
+          # Forzar subida completa: SIN --only-newer
+          echo "Subiendo archivos desde build/ a public_html/..."
+          mirror -R \
+            --delete \
+            --verbose \
+            --parallel=10 \
+            build/ public_html/
+
+          # Confirmar después del deploy
+          echo "=== Contenido FINAL en public_html/ ==="
+          ls -la public_html/ || echo "No se pudo listar al final"
+
           bye
           EOF
+
+          echo "Deploy completado."
