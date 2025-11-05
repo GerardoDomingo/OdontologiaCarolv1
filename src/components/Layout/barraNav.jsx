@@ -228,7 +228,7 @@ const BarraNav = () => {
           <ListItemIcon sx={{ color: isDarkTheme ? '#90caf9' : '#1976d2', minWidth: 40 }}>
             <FaCalendarAlt size={20} />
           </ListItemIcon>
-          <ListItemText primary="Agendaa una Cita" primaryTypographyProps={{ sx: { color: isDarkTheme ? '#fff' : '#1a2027', fontFamily: '"Montserrat", sans-serif', fontWeight: 600 } }} />
+          <ListItemText primary="Agenda una Cita" primaryTypographyProps={{ sx: { color: isDarkTheme ? '#fff' : '#1a2027', fontFamily: '"Montserrat", sans-serif', fontWeight: 600 } }} />
         </ListItem>
         <ListItem button component={Link} to="/login" onClick={toggleDrawer(false)} sx={{ py: 1.5, mt: 1, backgroundColor: isDarkTheme ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)', '&:hover': { backgroundColor: isDarkTheme ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' } }}>
           <ListItemIcon sx={{ color: isDarkTheme ? '#90caf9' : '#1976d2', minWidth: 40 }}>
@@ -341,7 +341,7 @@ const BarraNav = () => {
               </Typography>
             </Link>
             <Button variant="contained" color="primary" component={Link} to="/agendar-cita" startIcon={<FaCalendarAlt />} sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 600, fontSize: '0.875rem', backgroundColor: '#03427C', backgroundImage: 'linear-gradient(135deg, #03427C 0%, #0066cc 100%)', borderRadius: '24px', padding: '6px 16px', boxShadow: '0 4px 8px rgba(3, 66, 124, 0.25)', height: '38px', ml: 1, '&:hover': { backgroundImage: 'linear-gradient(135deg, #0052a3 0%, #0074e8 100%)', boxShadow: '0 6px 12px rgba(3, 66, 124, 0.35)', transform: 'translateY(-2px)' }, transition: 'transform 0.2s ease, box-shadow 0.2s ease, background-image 0.3s ease', textTransform: 'none' }}>
-              Agenda una Cita
+              Agendaa una Cita
             </Button>
             <Button variant="outlined" component={Link} to="/login" startIcon={<FaSignInAlt />} sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 600, fontSize: '0.875rem', color: isDarkTheme ? 'white' : '#03427C', borderColor: isDarkTheme ? 'rgba(255,255,255,0.5)' : '#03427C', borderWidth: '1px', borderRadius: '24px', padding: '6px 16px', height: '38px', ml: 1, '&:hover': { backgroundColor: isDarkTheme ? 'rgba(255,255,255,0.08)' : 'rgba(3,66,124,0.05)', borderColor: isDarkTheme ? 'white' : '#0066cc', transform: 'translateY(-2px)' }, transition: 'transform 0.2s ease, background-color 0.3s ease, border-color 0.3s ease', textTransform: 'none' }}>
               Iniciar sesión
