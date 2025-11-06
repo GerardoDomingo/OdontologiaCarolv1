@@ -51,19 +51,15 @@ jobs:
           name: build-artifact
           path: build/
 
-      - name: Deploy to Hostinger using Marketplace Action
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      - name: Deploy to Hostinger via SSH/SCP (Marketplace)
+        uses: appleboy/scp-action@v0.1.7
         with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USER }}
-          password: ${{ secrets.FTP_PASS }}
-          local-dir: build/
-          protocol: ftps   # o sftp si tu hosting lo soporta
-          exclude: |
-            Imagenes/**
-            imagenes/**
-            IMAGENES/**
-            .htaccess
-            robots.txt
-            favicon.ico
-            *.php
+          host: ${{ secrets.HOSTINGER_HOST }}       
+          username: ${{ secrets.HOSTINGER_USERNAME }} 
+          password: ${{ secrets.HOSTINGER_PASSWORD }} 
+          port: ${{ secrets.HOSTINGER_PORT }}         
+          source: "build/*"
+          target: "~/domains/odontologiacarol.com/public_html/"  
+          strip_components: 1
+          overwrite: true
+          timeout: 60s
