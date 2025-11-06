@@ -24,17 +24,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Update browserslist
-        run: npx update-browserslist-db@latest
-
       - name: Build frontend
         run: npm run build
         env:
           CI: false
 
       - name: Run specific tests with coverage
-        run: |
-          npm test -- --coverage --testPathPattern="src/pages/administrador/pages/gamificacion/(RecompensaTab|PacientesTab|ServiciosTab)\.test\.js"
+        run: npm test -- --coverage --testPathPattern="src/pages/administrador/pages/gamificacion/(RecompensaTab|PacientesTab|ServiciosTab)\.test\.js"
         env:
           CI: false
 
@@ -44,7 +40,6 @@ jobs:
           name: build-artifact
           path: build/
           retention-days: 1
-
 
   deploy-to-hostinger:
     needs: build-and-test
@@ -56,75 +51,20 @@ jobs:
           name: build-artifact
           path: build/
 
-      - name: Verify build exists
-        run: |
-          echo "Archivos en build/ local:"
-          if [ ! -d "build" ]; then
-            echo "ERROR: build/ no existe"
-            exit 1
-          fi
-          ls -la build/ | head -15
-
-      - name: Install lftp
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y lftp
-
-      - name: Deploy to Hostinger - Sube directamente a public_html
-        env:
-          FTP_HOST: ${{ secrets.FTP_HOST }}
-          FTP_USER: ${{ secrets.FTP_USER }}
-          FTP_PASS: ${{ secrets.FTP_PASS }}
-        run: |
-          # Validar secrets
-          [ -z "$FTP_HOST" ] && { echo "ERROR: Falta FTP_HOST"; exit 1; }
-          [ -z "$FTP_USER" ] && { echo "ERROR: Falta FTP_USER"; exit 1; }
-          [ -z "$FTP_PASS" ] && { echo "ERROR: Falta FTP_PASS"; exit 1; }
-
-          echo "Conectando a Hostinger via FTP: $FTP_HOST"
-
-          lftp -u "$FTP_USER,$FTP_PASS" "$FTP_HOST" <<EOF
-          set ftp:ssl-allow no
-          set mirror:use-pget-n 5
-          set net:timeout 30
-          set net:max-retries 3
-
-          # DEBUG: ¿Dónde estoy? (debe ser public_html)
-          echo "=== DIRECTORIO FTP (debe ser public_html) ==="
-          pwd
-          ls -la | head -15
-
-          # NO HACER cd public_html/ → YA ESTÁS AQUÍ
-
-          # ANTES del deploy
-          echo "=== ANTES del deploy ==="
-          ls -la | head -15
-
-          # BORRAR archivos del build anterior (proteger Imagenes)
-          echo "Borrando archivos antiguos del build..."
-          rm -rf static/ assets/ *.html *.js *.css *.json *.ico *.txt asset-manifest.json service-worker.js manifest.json 2>/dev/null || true
-
-          # SUBIR nuevo build al directorio actual (./ = public_html)
-          echo "Subiendo nuevo build a public_html/ ..."
-          mirror -R \
-            --verbose \
-            --parallel=10 \
-            --ignore-time \
-            --overwrite \
-            --exclude-glob Imagenes/ \
-            --exclude-glob imagenes/ \
-            --exclude-glob IMAGENES/ \
-            --exclude-glob .htaccess \
-            --exclude-glob robots.txt \
-            --exclude-glob favicon.ico \
-            --exclude-glob *.php \
-            build/ ./
-
-          # DESPUÉS
-          echo "=== DESPUÉS del deploy ==="
-          ls -la | head -15
-
-          bye
-          EOF
-
-          echo "DEPLOY COMPLETADO: Cambios visibles en https://odontologiacarol.com"
+      - name: Deploy to Hostinger using Marketplace Action
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASS }}
+          local-dir: build/
+          server-dir: public_html/
+          protocol: ftps   # o sftp si tu hosting lo soporta
+          exclude: |
+            Imagenes/**
+            imagenes/**
+            IMAGENES/**
+            .htaccess
+            robots.txt
+            favicon.ico
+            *.php
